@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+.ipynb_checkpoints/
+mlruns/
+minio_data/
+venv/
+.DS_Store
