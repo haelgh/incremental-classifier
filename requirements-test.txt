@@ -1,0 +1,21 @@
+# Web & API
+fastapi
+uvicorn
+httpx
+
+# AWS & MLOps
+boto3
+sagemaker
+mlflow
+evidently
+
+# Data Science
+pandas
+scikit-learn
+joblib
+numpy
+
+# Utils
+python-dotenv
+pytest
+flake8
