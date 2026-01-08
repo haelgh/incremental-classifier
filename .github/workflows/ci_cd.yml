@@ -21,10 +21,11 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        # Встановлюємо залежності для тестів
+        # Явно встановлюємо головні бібліотеки, щоб точно не було помилок
+        pip install flake8 pytest httpx fastapi uvicorn scikit-learn pandas
+        
+        # Якщо файл існує - довстановлюємо з нього решту (на майбутнє)
         if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
-        # Якщо немає requirements-test, пробуємо встановити хоча б базові
-        pip install flake8 pytest httpx
 
     - name: Lint with flake8
       run: |
