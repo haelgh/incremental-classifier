@@ -1,8 +1,10 @@
+.venv/
 __pycache__/
-*.pyc
 .env
-.ipynb_checkpoints/
-mlruns/
-minio_data/
-venv/
+data/
+*.tar.gz
+*.joblib
+*.csv
 .DS_Store
+temp_extract/
+monitoring/

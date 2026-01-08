@@ -1,43 +1,58 @@
-from airflow import DAG
-from airflow.operators.python import PythonOperator
-from datetime import datetime
 import boto3
 import pandas as pd
 from io import StringIO
 import os
+from sklearn.datasets import fetch_20newsgroups
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from datetime import datetime
+from dotenv import load_dotenv
 
-def upload_data():
+load_dotenv()
 
-    s3 = boto3.client('s3',
-                      endpoint_url='http://minio:9000',
-                    
-                      aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-                      aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
+BUCKET_NAME = os.getenv('S3_BUCKET_NAME', 'incremental-classifier-storage')
+PIPELINE_NAME = 'NewsClassificationPipeline'
+REGION = os.getenv('AWS_REGION', 'eu-north-1')
+
+def upload_real_data_to_s3():
+    s3 = boto3.client('s3', region_name=REGION)
     
-    bucket_name = 'news-data'
-    try:
-        s3.create_bucket(Bucket=bucket_name)
-    except:
-        pass
-
-    data = pd.DataFrame({
-        'text': ['news 1', 'news 2', 'news 3'],
-        'label': ['sport', 'politics', 'tech']
-    })
+    local_file_path = '/opt/airflow/dags/dataset.csv'
     
-    csv_buffer = StringIO()
-    data.to_csv(csv_buffer, index=False)
-    s3.put_object(Bucket=bucket_name, Body=csv_buffer.getvalue(), Key='dataset.csv')
-    print("Data uploaded to MinIO")
+    if os.path.exists(local_file_path):
+        print(f"Loading local file {local_file_path}...")
+        with open(local_file_path, "rb") as f:
+            s3.upload_fileobj(f, BUCKET_NAME, 'data/dataset.csv')
+        print(f"Successfully uploaded to s3://{BUCKET_NAME}/data/dataset.csv")
+    else:
+        print(f"Error: file NOT found at {local_file_path}")
+        print(f"Current directory: {os.getcwd()}")
+        raise FileNotFoundError(f"Missing {local_file_path}")
+
+def trigger_sagemaker_pipeline():
+    sm_client = boto3.client('sagemaker', region_name=REGION)
+    response = sm_client.start_pipeline_execution(
+        PipelineName=PIPELINE_NAME,
+        PipelineExecutionDescription=f"Run_triggered_by_Airflow_{datetime.now().strftime('%Y%m%d')}"
+    )
+    print(f"SageMaker Pipeline execution started: {response['PipelineExecutionArn']}")
 
 default_args = {
     'owner': 'airflow',
-    'start_date': datetime(2023, 1, 1),
+    'start_date': datetime(2025, 1, 1),
     'retries': 1,
 }
 
-with DAG('data_ingestion', default_args=default_args, schedule_interval='@daily', catchup=False) as dag:
-    task = PythonOperator(
-        task_id='upload_to_minio',
-        python_callable=upload_data
+with DAG('news_mlops_pipeline', default_args=default_args, schedule_interval='@daily', catchup=False) as dag:
+    
+    fetch_data_task = PythonOperator(
+        task_id='upload_to_s3',
+        python_callable=upload_real_data_to_s3
     )
+
+    trigger_pipeline_task = PythonOperator(
+        task_id='trigger_sagemaker_pipeline',
+        python_callable=trigger_sagemaker_pipeline
+    )
+
+    fetch_data_task >> trigger_pipeline_task
