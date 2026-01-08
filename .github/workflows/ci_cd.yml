@@ -22,7 +22,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         # Явно встановлюємо головні бібліотеки, щоб точно не було помилок
-        pip install flake8 pytest httpx fastapi uvicorn scikit-learn pandas boto3
+        pip install flake8 pytest httpx fastapi uvicorn scikit-learn pandas boto3 dotenv joblib nltk s3fs pyarrow
         
         # Якщо файл існує - довстановлюємо з нього решту (на майбутнє)
         if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
@@ -48,44 +48,43 @@ jobs:
         # Запускаємо тести. PYTHONPATH=. допомагає пітону бачити папку app/
         pytest
 
-  # Цю частину розкоментуємо, коли додаси Secrets в налаштування GitHub
-  # trigger-sagemaker:
-  #   needs: build-and-test
-  #   runs-on: ubuntu-latest
-  #   if: github.ref == 'refs/heads/main'
+  trigger-sagemaker:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     
-  #   steps:
-  #   - uses: actions/checkout@v3
+    steps:
+    - uses: actions/checkout@v3
     
-  #   - name: Set up Python
-  #     uses: actions/setup-python@v4
-  #     with:
-  #       python-version: "3.9"
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.9"
         
-  #   - name: Install AWS libs
-  #     run: |
-  #       pip install boto3
+    - name: Install AWS libs
+      run: |
+        pip install boto3
         
-  #   - name: Trigger SageMaker Pipeline
-  #     env:
-  #       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #       AWS_REGION: "eu-north-1"
-  #       PIPELINE_NAME: "NewsClassificationPipeline"
-  #     run: |
-  #       python -c "
-  #       import boto3
-  #       import os
-  #       from datetime import datetime
+    - name: Trigger SageMaker Pipeline
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: "eu-north-1"
+        PIPELINE_NAME: "NewsClassificationPipeline"
+      run: |
+        python -c "
+        import boto3
+        import os
+        from datetime import datetime
         
-  #       try:
-  #           client = boto3.client('sagemaker', region_name=os.getenv('AWS_REGION'))
-  #           response = client.start_pipeline_execution(
-  #               PipelineName=os.getenv('PIPELINE_NAME'),
-  #               PipelineExecutionDescription=f'Triggered from GitHub Actions {datetime.now()}'
-  #           )
-  #           print(f'Pipeline triggered: {response[\"PipelineExecutionArn\"]}')
-  #       except Exception as e:
-  #           print(f'Error triggering pipeline: {e}')
-  #           exit(1)
-  #       "
+        try:
+            client = boto3.client('sagemaker', region_name=os.getenv('AWS_REGION'))
+            response = client.start_pipeline_execution(
+                PipelineName=os.getenv('PIPELINE_NAME'),
+                PipelineExecutionDescription=f'Triggered from GitHub Actions {datetime.now()}'
+            )
+            print(f'Pipeline triggered: {response[\"PipelineExecutionArn\"]}')
+        except Exception as e:
+            print(f'Error triggering pipeline: {e}')
+            exit(1)
+        "
