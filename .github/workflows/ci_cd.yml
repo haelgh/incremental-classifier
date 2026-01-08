@@ -1,0 +1,90 @@
+name: MLOps CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.9"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        # Встановлюємо залежності для тестів
+        if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
+        # Якщо немає requirements-test, пробуємо встановити хоча б базові
+        pip install flake8 pytest httpx
+
+    - name: Lint with flake8
+      run: |
+        # перевірка на грубі помилки
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # перевірка стилю (не ламає білд, просто попереджає --exit-zero)
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Test with pytest
+      env:
+        # Фейкові ключі, щоб код не намагався підключитися до реального AWS під час тестів
+        AWS_ACCESS_KEY_ID: testing
+        AWS_SECRET_ACCESS_KEY: testing
+        AWS_SECURITY_TOKEN: testing
+        AWS_SESSION_TOKEN: testing
+        AWS_REGION: eu-north-1
+        S3_BUCKET_NAME: test-bucket
+        PYTHONPATH: .
+      run: |
+        # Запускаємо тести. PYTHONPATH=. допомагає пітону бачити папку app/
+        pytest
+
+  # Цю частину розкоментуємо, коли додаси Secrets в налаштування GitHub
+  # trigger-sagemaker:
+  #   needs: build-and-test
+  #   runs-on: ubuntu-latest
+  #   if: github.ref == 'refs/heads/main'
+    
+  #   steps:
+  #   - uses: actions/checkout@v3
+    
+  #   - name: Set up Python
+  #     uses: actions/setup-python@v4
+  #     with:
+  #       python-version: "3.9"
+        
+  #   - name: Install AWS libs
+  #     run: |
+  #       pip install boto3
+        
+  #   - name: Trigger SageMaker Pipeline
+  #     env:
+  #       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #       AWS_REGION: "eu-north-1"
+  #       PIPELINE_NAME: "NewsClassificationPipeline"
+  #     run: |
+  #       python -c "
+  #       import boto3
+  #       import os
+  #       from datetime import datetime
+        
+  #       try:
+  #           client = boto3.client('sagemaker', region_name=os.getenv('AWS_REGION'))
+  #           response = client.start_pipeline_execution(
+  #               PipelineName=os.getenv('PIPELINE_NAME'),
+  #               PipelineExecutionDescription=f'Triggered from GitHub Actions {datetime.now()}'
+  #           )
+  #           print(f'Pipeline triggered: {response[\"PipelineExecutionArn\"]}')
+  #       except Exception as e:
+  #           print(f'Error triggering pipeline: {e}')
+  #           exit(1)
+  #       "
