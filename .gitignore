@@ -7,7 +7,6 @@ data/
 *.csv
 .DS_Store
 temp_extract/
-monitoring/
 .terraform/
 *.tfstate
 *.tfstate.backup

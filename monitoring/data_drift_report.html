@@ -1,0 +1,140 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>MLOps Data Drift Report</title>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+                .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+                h1 { color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+                h2 { color: #34495e; margin-top: 30px; }
+                
+                .status-card { background: #fff0f0; border-left: 5px solid #e74c3c; padding: 15px; margin-bottom: 20px; }
+                .status-title { font-weight: bold; color: #c0392b; font-size: 1.2em; }
+                .meta-info { color: #7f8c8d; font-size: 0.9em; margin-bottom: 20px; }
+                
+                /* Таблиці */
+                .styled-table { width: 100%; border-collapse: collapse; margin: 25px 0; font-size: 0.9em; min-width: 400px; }
+                .styled-table thead tr { background-color: #009879; color: #ffffff; text-align: left; }
+                .styled-table th, .styled-table td { padding: 12px 15px; border-bottom: 1px solid #dddddd; }
+                .styled-table tbody tr:nth-of-type(even) { background-color: #f3f3f3; }
+                .styled-table tbody tr:last-of-type { border-bottom: 2px solid #009879; }
+                
+                .footer { margin-top: 40px; text-align: center; color: #aaa; font-size: 0.8em; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>📊 MLOps Data Drift Report</h1>
+                <p class="meta-info">Generated automatically by MLOps Pipeline • Source: S3/incremental-classifier-storage-final-prod</p>
+
+                <div class="status-card">
+                    <div class="status-title">⚠️ DATA DRIFT DETECTED</div>
+                    <p>Significant changes in data distribution detected between Reference (Training) and Current (Production) datasets.</p>
+                    <p><strong>Action Required:</strong> Review model performance and consider retraining.</p>
+                </div>
+
+                <h2>Dataset Overview</h2>
+                <ul>
+                    <li><strong>Total Records:</strong> 18331</li>
+                    <li><strong>Reference Set (Past):</strong> 9165 rows</li>
+                    <li><strong>Current Set (New):</strong> 9166 rows</li>
+                </ul>
+
+                <h2>Statistical Comparison</h2>
+                
+                <h3>Reference Data Statistics</h3>
+                <table class="dataframe styled-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>label</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>count</th>
+      <td>9165.000000</td>
+    </tr>
+    <tr>
+      <th>mean</th>
+      <td>9.298854</td>
+    </tr>
+    <tr>
+      <th>std</th>
+      <td>5.554052</td>
+    </tr>
+    <tr>
+      <th>min</th>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <th>25%</th>
+      <td>5.000000</td>
+    </tr>
+    <tr>
+      <th>50%</th>
+      <td>9.000000</td>
+    </tr>
+    <tr>
+      <th>75%</th>
+      <td>14.000000</td>
+    </tr>
+    <tr>
+      <th>max</th>
+      <td>19.000000</td>
+    </tr>
+  </tbody>
+</table>
+
+                <h3>Current Data Statistics</h3>
+                <table class="dataframe styled-table">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>label</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>count</th>
+      <td>9166.000000</td>
+    </tr>
+    <tr>
+      <th>mean</th>
+      <td>9.279293</td>
+    </tr>
+    <tr>
+      <th>std</th>
+      <td>5.578747</td>
+    </tr>
+    <tr>
+      <th>min</th>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <th>25%</th>
+      <td>4.000000</td>
+    </tr>
+    <tr>
+      <th>50%</th>
+      <td>9.000000</td>
+    </tr>
+    <tr>
+      <th>75%</th>
+      <td>14.000000</td>
+    </tr>
+    <tr>
+      <th>max</th>
+      <td>19.000000</td>
+    </tr>
+  </tbody>
+</table>
+
+                <div class="footer">
+                    &copy; 2026 MLOps Incremental Classifier Pipeline
+                </div>
+            </div>
+        </body>
+        </html>
+        
