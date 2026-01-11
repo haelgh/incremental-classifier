@@ -24,7 +24,7 @@ def fetch_and_upload_data():
     df.to_csv(local_path, index=False)
     print(f"Saved locally to {local_path}")
     
-    bucket_name = os.getenv('S3_BUCKET_NAME', "incremental-classifier-storage")
+    bucket_name = os.getenv('S3_BUCKET_NAME')
     region = os.getenv('AWS_REGION', 'eu-north-1')
 
     s3 = boto3.client('s3', region_name=region)
