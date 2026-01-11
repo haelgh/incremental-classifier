@@ -87,7 +87,7 @@ jobs:
                 PipelineName=os.getenv('PIPELINE_NAME'),
                 PipelineExecutionDescription='Triggered by GitHub Actions'
             )
-            print(f'SUCCESS: Pipeline triggered! ARN: {response[\"PipelineExecutionArn\"]}')
+            print(f'SUCCESS: Pipeline triggered! ARN: {response["PipelineExecutionArn"]}')
         except Exception as e:
             print(f'ERROR: {e}')
         "
@@ -98,14 +98,18 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_REGION: eu-north-1
         AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
-        S3_BUCKET_NAME: "incremental-classifier-storage-final-prod"
       run: |
-        pip install boto3 sagemaker python-dotenv
 
-        LATEST_KEY=$(aws s3api list-objects-v2 --bucket $S3_BUCKET_NAME --query 'sort_by(Contents, &LastModified)[-1].Key' --output text)
+        pip install "sagemaker>=2.190.0" boto3 python-dotenv scikit-learn pandas s3fs joblib nltk pyarrow evidently
+        LATEST_KEY=$(aws s3api list-objects-v2 --bucket $S3_BUCKET_NAME --query "sort_by(Contents[?contains(Key, 'model.tar.gz')], &LastModified)[-1].Key" --output text)
         
-        echo "Found latest artifact: $LATEST_KEY"
+        if [ "$LATEST_KEY" == "None" ] || [ -z "$LATEST_KEY" ]; then
+          echo "ERROR: No model.tar.gz found in bucket!"
+          exit 1
+        fi
+
+        echo "Found latest model artifact: $LATEST_KEY"
         
         export MODEL_DATA_URL="s3://$S3_BUCKET_NAME/$LATEST_KEY"
-
+        
         python pipeline_definitions/deploy_model.py
