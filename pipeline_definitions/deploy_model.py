@@ -58,7 +58,7 @@ try:
         initial_instance_count=1,
         instance_type='ml.m5.large',
         endpoint_name=ENDPOINT_NAME,
-        wait=False
+        wait=True
     )
     print(f"\nSUCCESS! Deployment initiated.")
     print(f"Endpoint '{ENDPOINT_NAME}' is now in 'Creating' status.")

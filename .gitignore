@@ -8,3 +8,7 @@ data/
 .DS_Store
 temp_extract/
 monitoring/
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
