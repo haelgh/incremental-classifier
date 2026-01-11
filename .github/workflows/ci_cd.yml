@@ -36,7 +36,6 @@ jobs:
 
     - name: Test with pytest
       env:
-        # Фейкові ключі, щоб код не намагався підключитися до реального AWS під час тестів
         AWS_ACCESS_KEY_ID: testing
         AWS_SECRET_ACCESS_KEY: testing
         AWS_SECURITY_TOKEN: testing
@@ -45,7 +44,6 @@ jobs:
         S3_BUCKET_NAME: test-bucket
         PYTHONPATH: .
       run: |
-        # Запускаємо тести. PYTHONPATH=. допомагає пітону бачити папку app/
         pytest
 
   trigger-sagemaker:
@@ -62,8 +60,7 @@ jobs:
         python-version: "3.9"
         
     - name: Install AWS libs
-      run: |
-        pip install boto3
+      run: pip install boto3
         
     - name: Trigger SageMaker Pipeline
       env:
@@ -75,16 +72,17 @@ jobs:
         python -c "
         import boto3
         import os
-        from datetime import datetime
-        
         try:
             client = boto3.client('sagemaker', region_name=os.getenv('AWS_REGION'))
+            
             response = client.start_pipeline_execution(
                 PipelineName=os.getenv('PIPELINE_NAME'),
-                PipelineExecutionDescription=f'Triggered from GitHub Actions {datetime.now()}'
+                PipelineExecutionDescription='Triggered by GitHub Actions'
             )
-            print(f'Pipeline triggered: {response[\"PipelineExecutionArn\"]}')
+            print(f'SUCCESS: Pipeline triggered! ARN: {response[\"PipelineExecutionArn\"]}')
         except Exception as e:
-            print(f'Error triggering pipeline: {e}')
+            print(f'ERROR: {e}')
+            # Якщо пайплайн не знайдено - це ок для тесту, головне що авторизація пройшла
+            # exit(1)
             exit(1)
         "
