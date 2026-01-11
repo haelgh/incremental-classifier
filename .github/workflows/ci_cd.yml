@@ -91,3 +91,21 @@ jobs:
         except Exception as e:
             print(f'ERROR: {e}')
         "
+
+    - name: Auto-Deploy Latest Model
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: eu-north-1
+        AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+        S3_BUCKET_NAME: "incremental-classifier-storage-final-prod"
+      run: |
+        pip install boto3 sagemaker python-dotenv
+
+        LATEST_KEY=$(aws s3api list-objects-v2 --bucket $S3_BUCKET_NAME --query 'sort_by(Contents, &LastModified)[-1].Key' --output text)
+        
+        echo "Found latest artifact: $LATEST_KEY"
+        
+        export MODEL_DATA_URL="s3://$S3_BUCKET_NAME/$LATEST_KEY"
+
+        python pipeline_definitions/deploy_model.py
