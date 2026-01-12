@@ -100,7 +100,7 @@ jobs:
         AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
       run: |
 
-        pip install "sagemaker>=2.190.0" boto3 python-dotenv scikit-learn pandas s3fs joblib nltk pyarrow evidently
+        pip install "sagemaker<3.0.0" boto3 python-dotenv scikit-learn pandas joblib s3fs pyarrow evidently
 
         BUCKET="incremental-classifier-storage" 
 
