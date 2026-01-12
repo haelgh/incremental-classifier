@@ -101,14 +101,15 @@ jobs:
       run: |
 
         pip install "sagemaker>=2.190.0" boto3 python-dotenv scikit-learn pandas s3fs joblib nltk pyarrow evidently
-        BUCKET="incremental-classifier-storage-final-prod"
+
+        BUCKET="incremental-classifier-storage" 
 
         echo "Looking for model in bucket: $BUCKET"
 
         LATEST_KEY=$(aws s3api list-objects-v2 --bucket $BUCKET --query "sort_by(Contents[?contains(Key, 'model.tar.gz')], &LastModified)[-1].Key" --output text)
         
         if [ "$LATEST_KEY" == "None" ] || [ -z "$LATEST_KEY" ]; then
-          echo "ERROR: No model.tar.gz found in bucket!"
+          echo "ERROR: No model.tar.gz found in bucket $BUCKET!"
           exit 1
         fi
 
