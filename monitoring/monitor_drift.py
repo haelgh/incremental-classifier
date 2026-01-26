@@ -57,8 +57,8 @@ def run_manual_html_report():
         </head>
         <body>
             <div class="container">
-                <h1>📊 MLOps Data Drift Report</h1>
-                <p class="meta-info">Generated automatically by MLOps Pipeline • Source: S3/{bucket_name}</p>
+                <h1>📊 Data Drift Report</h1>
+                <p class="meta-info">Generated automatically by Pipeline • Source: S3/{bucket_name}</p>
 
                 <div class="status-card">
                     <div class="status-title">⚠️ DATA DRIFT DETECTED</div>
