@@ -3,17 +3,21 @@ from pydantic import BaseModel
 import boto3
 import os
 from dotenv import load_dotenv
+import json
 
 app = FastAPI()
 load_dotenv()
 
 CLASS_NAMES = {
-    0: 'Клас 0 (Офіційні новини / Негатив)',
-    1: 'Клас 1 (Спорт / Позитив)',
-    2: 'Клас 2 (Бізнес / Нейтрально)',
-    3: 'Клас 3 (Технології / Емоції)'
+    0: "World/Politics",
+    1: "Sports",
+    2: "Business/Finance",
+    3: "Tech/Science",
+    4: "Anger/Complaint",
+    5: "Joy/Appreciation",
+    6: "Optimism/Proposal",
+    7: "Sadness/Crisis"
 }
-
 runtime = boto3.client('sagemaker-runtime', region_name=os.getenv("AWS_REGION", "eu-north-1"))
 
 class NewsInput(BaseModel):
@@ -22,18 +26,26 @@ class NewsInput(BaseModel):
 @app.post("/predict")
 def predict(input_data: NewsInput):
     try:
+        payload = json.dumps({"text": input_data.text})
+        
         response = runtime.invoke_endpoint(
-            EndpointName=os.getenv("SAGEMAKER_ENDPOINT_NAME", "continual-learning-endpoint"),
+            EndpointName=os.getenv("SAGEMAKER_ENDPOINT_NAME", "news-classifier-endpoint"),
             ContentType='application/json',
-            Body='{"text": "' + input_data.text.replace('"', '\\"') + '"}'
+            Body=payload
         )
         
-        result = response['Body'].read().decode('utf-8')
-        class_id = int(result.strip('[]'))
+        result_str = response['Body'].read().decode('utf-8').strip()
+        
+        import re
+        clean_result = re.sub(r'[\[\]"]', '', result_str)
+        pred_index = int(float(clean_result))
+        
+        category = CLASS_NAMES.get(pred_index, "Unknown")
         
         return {
-            "predicted_class_id": class_id,
-            "predicted_label": CLASS_NAMES.get(class_id, "Невідомий клас")
+            "predicted_class_id": pred_index,
+            "predicted_label": category,
+            "status": "success"
         }
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": str(e), "status": "failed"}
