@@ -1,43 +1,67 @@
 import os
-import joblib
 import json
 import time
 import boto3
+import torch
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 cloudwatch = boto3.client('cloudwatch')
 
-def model_fn(model_dir):
-    model_path = os.path.join(model_dir, "model.joblib")
-    return joblib.load(model_path)
+def model_fn(model_dir, context=None):
+    
+    actual_model_dir = model_dir
+    
+    # Якщо в корені немає config.json, шукаємо його у підпапках
+    if not os.path.exists(os.path.join(model_dir, 'config.json')):
+        print("config.json не знайдено в корені. Перевіряємо підпапки...")
+        for item in os.listdir(model_dir):
+            item_path = os.path.join(model_dir, item)
 
-def input_fn(request_body, content_type):
-    if content_type == 'application/json':
+            if os.path.isdir(item_path) and os.path.exists(os.path.join(item_path, 'config.json')):
+                actual_model_dir = item_path
+                break
+                
+    print(f"Loading model from {actual_model_dir}")
+    tokenizer = AutoTokenizer.from_pretrained(actual_model_dir)
+    model = AutoModelForSequenceClassification.from_pretrained(actual_model_dir)
+    return {'model': model, 'tokenizer': tokenizer}
+
+def input_fn(request_body, request_content_type, context=None):
+    if isinstance(request_body, bytes):
+        request_body = request_body.decode('utf-8')
+        
+    if request_content_type == 'application/json':
         request = json.loads(request_body)
-        return request.get('text', [])
-    return [request_body]
+        return request.get('text', "")
+        
+    return request_body
 
-def predict_fn(input_data, model):
-
+def predict_fn(input_data, model_dict, context=None):
     start_time = time.time()
     
-    prediction = model.predict(input_data)
+    model = model_dict['model']
+    tokenizer = model_dict['tokenizer']
+
+    if not isinstance(input_data, (str, list)):
+        input_data = str(input_data)
+
+    inputs = tokenizer(input_data, return_tensors="pt", truncation=True, padding=True, max_length=128)
+    
+    with torch.no_grad():
+        outputs = model(**inputs)
+    
+    prediction = torch.argmax(outputs.logits, dim=-1).item()
     
     latency = (time.time() - start_time) * 1000
-    
     try:
         cloudwatch.put_metric_data(
-            Namespace='IncrementalNewsClassifier',
-            MetricData=[{
-                'MetricName': 'InferenceLatency',
-                'Value': latency,
-                'Unit': 'Milliseconds'
-                
-            }]
+            Namespace='ContinualLearningClassifier',
+            MetricData=[{'MetricName': 'InferenceLatency', 'Value': latency, 'Unit': 'Milliseconds'}]
         )
-    except Exception as e:
-        print(f"CloudWatch metrics failed: {e}")
+    except Exception:
+        pass
         
-    return prediction
+    return [prediction]
 
-def output_fn(prediction, content_type):
-    return json.dumps(prediction.tolist())
+def output_fn(prediction, accept, context=None):
+    return json.dumps(prediction)
