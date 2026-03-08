@@ -14,15 +14,48 @@ def detect_language(text):
         return "uk"
     return "en"
 
+# Оновлена, професійна бізнес-логіка
 CLASS_UI = {
-    0: {"label": "Світ та Політика", "color": "#1f77b4", "icon": "🌍", "template": {"uk": "Вітаємо! Дякуємо за ваш запит щодо міжнародних новин...", "en": "Hello! Thank you for your inquiry regarding international news..."}},
-    1: {"label": "Спорт", "color": "#2ca02c", "icon": "🏆", "template": {"uk": "Спортивний відділ отримав ваше повідомлення...", "en": "Sports department has received your message..."}},
-    2: {"label": "Бізнес та Фінанси", "color": "#ff7f0e", "icon": "💼", "template": {"uk": "Ваш запит щодо фінансових питань передано аналітикам...", "en": "Your inquiry regarding financial matters has been forwarded..."}},
-    3: {"label": "IT та Інновації", "color": "#9467bd", "icon": "⚡", "template": {"uk": "Вітаємо у майбутньому! Ваш запит щодо STEM/Tech передано...", "en": "Welcome to the future! Your STEM/Tech inquiry has been routed..."}},
-    4: {"label": "Кризова підтримка (Агресія)", "color": "#d62728", "icon": "🚨", "template": {"uk": "Ми бачимо, що ви незадоволені. Передаємо ваш запит старшому менеджеру.", "en": "We understand your frustration. Your ticket has been escalated."}},
-    5: {"label": "Позитивний відгук", "color": "#e377c2", "icon": "✨", "template": {"uk": "Дякуємо за теплі слова! Нам дуже приємно...", "en": "Thank you for your kind words! We are thrilled..."}},
-    6: {"label": "Пропозиції та Оптимізм", "color": "#bcbd22", "icon": "💡", "template": {"uk": "Дякуємо за вашу ідею! Ми розглянемо її на найближчій нараді.", "en": "Thank you for your idea! We will review it shortly."}},
-    7: {"label": "Критичні ситуації (Сум)", "color": "#7f7f7f", "icon": "📉", "template": {"uk": "Нам шкода, що так сталося. Давайте знайдемо вихід разом.", "en": "We are sorry this happened. Let's find a solution together."}}
+    0: {
+        "label": "Глобальні події / Політика", "color": "#1f77b4", "icon": "🌍", 
+        "routing": "PR-відділ / Моніторинг", "action": "Аналіз репутаційних ризиків. Відповідь не потребується, зберегти для звіту.",
+        "template": {"uk": "Запит стосується загальних новин. Пряма відповідь не передбачена регламентом.", "en": "Information regarding global events. No direct response required by protocol."}
+    },
+    1: {
+        "label": "Спортивні події", "color": "#2ca02c", "icon": "🏆", 
+        "routing": "Відділ спонсорства та івентів", "action": "Перевірити наявність запитів на партнерство. Передати маркетологам.",
+        "template": {"uk": "Вітаємо! Ваш запит щодо спортивних ініціатив передано до профільного відділу.", "en": "Hello! Your message regarding sports initiatives has been forwarded to the relevant department."}
+    },
+    2: {
+        "label": "Комерція та Фінанси", "color": "#ff7f0e", "icon": "💼", 
+        "routing": "B2B Sales / Бухгалтерія", "action": "Високий пріоритет. Залучити фінансового консультанта для підготовки комерційної пропозиції.",
+        "template": {"uk": "Доброго дня. Дякуємо за звернення. Ваш запит передано фінансовому спеціалісту, який зв'яжеться з вами найближчим часом.", "en": "Good day. Your financial/commercial inquiry has been routed to our B2B specialist."}
+    },
+    3: {
+        "label": "Технології та Інновації", "color": "#9467bd", "icon": "⚡", 
+        "routing": "IT Департамент", "action": "Технічний аналіз або розгляд пропозицій щодо співпраці у сфері STEM.",
+        "template": {"uk": "Вітаємо! Ваш запит на технічну або інноваційну тематику зареєстровано в IT-відділі.", "en": "Hello! Your tech-related inquiry has been registered with our IT department."}
+    },
+    4: {
+        "label": "Кризова ситуація / Агресія", "color": "#d62728", "icon": "🚨", 
+        "routing": "Escalation Team (Менеджери)", "action": "КРИТИЧНО (SLA < 15 хв). Негайна ескалація. Зв'язатися з клієнтом особисто для нейтралізації конфлікту.",
+        "template": {"uk": "Шановний(а) клієнте. Ми фіксуємо ваше невдоволення. Керівництво вже розглядає вашу ситуацію для негайного вирішення.", "en": "Dear Customer. We acknowledge your severe frustration. Management is reviewing your case immediately."}
+    },
+    5: {
+        "label": "Позитивний фідбек / Лояльність", "color": "#e377c2", "icon": "✨", 
+        "routing": "Відділ маркетингу", "action": "Низький пріоритет. Надіслати автоматичну подяку. Розглянути можливість використання для PR.",
+        "template": {"uk": "Дякуємо за ваш позитивний настрій та довіру до нас! Ми працюємо саме для таких моментів.", "en": "Thank you for your positive energy and trust in us! This makes our day."}
+    },
+    6: {
+        "label": "Пропозиції та Ідеї (Оптимізм)", "color": "#bcbd22", "icon": "💡", 
+        "routing": "Product Managers (R&D)", "action": "Проаналізувати ідею клієнта. Додати в беклог, якщо пропозиція конструктивна.",
+        "template": {"uk": "Дякуємо за вашу ідею! Ми передали її команді розробників для розгляду в наступних оновленнях.", "en": "Thank you for your suggestion! We have forwarded your idea to our product team."}
+    },
+    7: {
+        "label": "Сум / Проблемна ситуація", "color": "#7f7f7f", "icon": "📉", 
+        "routing": "Служба турботи (Емпатійна підтримка)", "action": "Середній пріоритет. Проявити максимальну емпатію. Запропонувати компенсацію або допомогу.",
+        "template": {"uk": "Нам дуже прикро, що у вас склалася така ситуація. Розкажіть детальніше, і ми зробимо все можливе, щоб допомогти.", "en": "We are truly sorry to hear you are going through this. Please let us know how we can support you."}
+    }
 }
 
 @st.cache_resource
@@ -65,12 +98,20 @@ with col1:
                     
                     ui_info = CLASS_UI.get(class_id)
                     if ui_info:
-                        st.success("Успішно оброблено!")
+                        st.success("Текст успішно проаналізовано!")
+                        
                         st.markdown(f"""
                         <div style="padding: 15px; border-radius: 10px; border-left: 5px solid {ui_info['color']}; background-color: rgba(255,255,255,0.05); margin-bottom: 20px;">
                             <h3 style="color: {ui_info['color']}; margin: 0;">{ui_info['icon']} {ui_info['label']}</h3>
                         </div>
                         """, unsafe_allow_html=True)
+                        
+                        st.markdown("### 📊 Системна маршрутизація")
+                        st.info(f"**Департамент:** {ui_info['routing']}")
+                        st.warning(f"**Рекомендована дія для оператора:** {ui_info['action']}")
+                        
+                        st.markdown("### 📝 Чорновик відповіді (Draft)")
+                        st.caption(f"Визначена мова: {lang.upper()}")
                         st.code(ui_info["template"][lang], language="markdown")
                         
                         st.session_state.history.append({
