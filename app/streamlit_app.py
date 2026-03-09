@@ -3,6 +3,7 @@ import boto3
 import json
 import re
 from datetime import datetime
+from deep_translator import GoogleTranslator
 
 st.set_page_config(page_title="Smart Desk | Continual Learning", page_icon="📨", layout="wide")
 
@@ -14,7 +15,6 @@ def detect_language(text):
         return "uk"
     return "en"
 
-# Оновлена, професійна бізнес-логіка
 CLASS_UI = {
     0: {
         "label": "Глобальні події / Політика", "color": "#1f77b4", "icon": "🌍", 
@@ -80,11 +80,24 @@ with col1:
         if not text_input.strip():
             st.warning("Поле вводу порожнє.")
         else:
+            lang = detect_language(text_input)
+            
+            if lang == "uk":
+                with st.spinner("Переклад на зрозумілу для нейромережі мову..."):
+                    try:
+                        text_to_analyze = GoogleTranslator(source='uk', target='en').translate(text_input)
+                        st.caption(f"🔧 Внутрішній переклад для AWS: *«{text_to_analyze}»*")
+                    except Exception as e:
+                        st.error("Помилка перекладу. Спробуйте ще раз.")
+                        text_to_analyze = text_input 
+            else:
+                text_to_analyze = text_input
+
             with st.spinner("Звернення до AWS SageMaker..."):
                 try:
                     client = get_sagemaker_client()
-                    lang = detect_language(text_input)
-                    payload = json.dumps({"text": text_input})
+                    
+                    payload = json.dumps({"text": text_to_analyze})
                     
                     response = client.invoke_endpoint(
                         EndpointName=st.secrets["SAGEMAKER_ENDPOINT_NAME"],
@@ -111,7 +124,6 @@ with col1:
                         st.warning(f"**Рекомендована дія для оператора:** {ui_info['action']}")
                         
                         st.markdown("### 📝 Чорновик відповіді (Draft)")
-                        st.caption(f"Визначена мова: {lang.upper()}")
                         st.code(ui_info["template"][lang], language="markdown")
                         
                         st.session_state.history.append({
